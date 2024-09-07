@@ -26,7 +26,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.jcode.App</mainClass> name --> </manifest>
+              <mainClass>com.jcode.Lox</mainClass> name --> </manifest>
           </archive>
         </configuration>
       </plugin>
