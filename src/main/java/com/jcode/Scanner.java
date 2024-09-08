@@ -74,17 +74,7 @@ public class Scanner {
                 break;
 
             case '/':
-                if (match('/')) {
-                    while (peek() != '\n' && !isAtEnd()) advance();
-                } else if (match('*')) {
-                    while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) advance();
-
-                    // Consume the "*/"
-                    advance();
-                    advance();
-                } else {
-                    addToken(TokenType.SLASH);
-                }
+                slash();
                 break;
 
             case ' ':
@@ -117,6 +107,22 @@ public class Scanner {
         TokenType type = keywords.get(text);
         if (type == null) type = TokenType.IDENTIFIER;
         addToken(type);
+    }
+
+    private void slash() {
+        if (match('/')) {
+            // Single line comment
+            while (peek() != '\n' && !isAtEnd()) advance();
+        } else if (match('*')) {
+            // Multi-line/inline comment
+            while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) advance();
+
+            // Consume the "*/"
+            advance();
+            advance();
+        } else {
+            addToken(TokenType.SLASH);
+        }
     }
 
     private void number() {
