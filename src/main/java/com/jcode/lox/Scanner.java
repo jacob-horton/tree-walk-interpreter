@@ -1,4 +1,4 @@
-package com.jcode;
+package com.jcode.lox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,23 +14,22 @@ public class Scanner {
     private int line = 1;
 
     private static final Map<String, TokenType> keywords = Map.ofEntries(
-        entry("and", TokenType.AND),
-        entry("class", TokenType.CLASS),
-        entry("else", TokenType.ELSE),
-        entry("false", TokenType.FALSE),
-        entry("for", TokenType.FOR),
-        entry("fun", TokenType.FUN),
-        entry("if", TokenType.IF),
-        entry("nil", TokenType.NIL),
-        entry("or", TokenType.OR),
-        entry("print", TokenType.PRINT),
-        entry("return", TokenType.RETURN),
-        entry("super", TokenType.SUPER),
-        entry("this", TokenType.THIS),
-        entry("true", TokenType.TRUE),
-        entry("var", TokenType.VAR),
-        entry("while", TokenType.WHILE)
-    );
+            entry("and", TokenType.AND),
+            entry("class", TokenType.CLASS),
+            entry("else", TokenType.ELSE),
+            entry("false", TokenType.FALSE),
+            entry("for", TokenType.FOR),
+            entry("fun", TokenType.FUN),
+            entry("if", TokenType.IF),
+            entry("nil", TokenType.NIL),
+            entry("or", TokenType.OR),
+            entry("print", TokenType.PRINT),
+            entry("return", TokenType.RETURN),
+            entry("super", TokenType.SUPER),
+            entry("this", TokenType.THIS),
+            entry("true", TokenType.TRUE),
+            entry("var", TokenType.VAR),
+            entry("while", TokenType.WHILE));
 
     Scanner(String source) {
         this.source = source;
@@ -49,16 +48,36 @@ public class Scanner {
     private void scanToken() {
         char c = advance();
         switch (c) {
-            case '(': addToken(TokenType.LEFT_PAREN); break;
-            case ')': addToken(TokenType.RIGHT_PAREN); break;
-            case '{': addToken(TokenType.LEFT_BRACE); break;
-            case '}': addToken(TokenType.RIGHT_BRACE); break;
-            case ',': addToken(TokenType.COMMA); break;
-            case '.': addToken(TokenType.DOT); break;
-            case '-': addToken(TokenType.MINUS); break;
-            case '+': addToken(TokenType.PLUS); break;
-            case ';': addToken(TokenType.SEMICOLON); break;
-            case '*': addToken(TokenType.STAR); break;
+            case '(':
+                addToken(TokenType.LEFT_PAREN);
+                break;
+            case ')':
+                addToken(TokenType.RIGHT_PAREN);
+                break;
+            case '{':
+                addToken(TokenType.LEFT_BRACE);
+                break;
+            case '}':
+                addToken(TokenType.RIGHT_BRACE);
+                break;
+            case ',':
+                addToken(TokenType.COMMA);
+                break;
+            case '.':
+                addToken(TokenType.DOT);
+                break;
+            case '-':
+                addToken(TokenType.MINUS);
+                break;
+            case '+':
+                addToken(TokenType.PLUS);
+                break;
+            case ';':
+                addToken(TokenType.SEMICOLON);
+                break;
+            case '*':
+                addToken(TokenType.STAR);
+                break;
 
             case '!':
                 addToken(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
@@ -86,12 +105,14 @@ public class Scanner {
                 line++;
                 break;
 
-            case '"': string(); break;
+            case '"':
+                string();
+                break;
 
             default:
                 if (isDigit(c)) {
                     number();
-                }else if (isAlpha(c)) {
+                } else if (isAlpha(c)) {
                     identifier();
                 } else {
                     Lox.error(line, "Unexpected character.");
@@ -101,21 +122,25 @@ public class Scanner {
     }
 
     private void identifier() {
-        while (isAlphaNumeric(peek())) advance();
+        while (isAlphaNumeric(peek()))
+            advance();
 
         String text = source.substring(start, current);
         TokenType type = keywords.get(text);
-        if (type == null) type = TokenType.IDENTIFIER;
+        if (type == null)
+            type = TokenType.IDENTIFIER;
         addToken(type);
     }
 
     private void slash() {
         if (match('/')) {
             // Single line comment
-            while (peek() != '\n' && !isAtEnd()) advance();
+            while (peek() != '\n' && !isAtEnd())
+                advance();
         } else if (match('*')) {
             // Multi-line/inline comment
-            while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) advance();
+            while (!(peek() == '*' && peekNext() == '/') && !isAtEnd())
+                advance();
 
             // Consume the "*/"
             advance();
@@ -143,8 +168,9 @@ public class Scanner {
     }
 
     private void string() {
-        while(peek() != '"' && !isAtEnd()) {
-            if(peek() == '\n') line++;
+        while (peek() != '"' && !isAtEnd()) {
+            if (peek() == '\n')
+                line++;
             advance();
         }
 
@@ -157,25 +183,29 @@ public class Scanner {
         advance();
 
         // Remove surrounding quotes
-        String value = source.substring(start + 1, current -1);
+        String value = source.substring(start + 1, current - 1);
         addToken(TokenType.STRING, value);
     }
 
     private boolean match(char expected) {
-        if(isAtEnd()) return false;
-        if (source.charAt(current) != expected) return false;
+        if (isAtEnd())
+            return false;
+        if (source.charAt(current) != expected)
+            return false;
 
         current++;
         return true;
     }
 
     private char peek() {
-        if (isAtEnd()) return '\0';
+        if (isAtEnd())
+            return '\0';
         return source.charAt(current);
     }
 
     private char peekNext() {
-        if (current + 1 >= source.length()) return '\0';
+        if (current + 1 >= source.length())
+            return '\0';
         return source.charAt(current + 1);
     }
 
