@@ -1,11 +1,14 @@
 package com.jcode.lox;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Environment {
 	public final Environment enclosing;
 	private final Map<String, Object> values = new HashMap<>();
+	private final Set<String> unassigned = new HashSet<>();
 
 	public Environment() {
 		enclosing = null;
@@ -16,6 +19,10 @@ public class Environment {
 	}
 
 	Object get(Token name) {
+		if (unassigned.contains(name.lexeme)) {
+			throw new RuntimeError(name, "Unassigned variable '" + name.lexeme + "'.");
+		}
+
 		if (values.containsKey(name.lexeme)) {
 			return values.get(name.lexeme);
 		}
@@ -28,10 +35,14 @@ public class Environment {
 
 	void define(String name, Object value) {
 		values.put(name, value);
+
+		if (value == null)
+			unassigned.add(name);
 	}
 
 	Object assign(Token name, Object value) {
 		if (values.containsKey(name.lexeme)) {
+			unassigned.remove(name.lexeme);
 			return values.put(name.lexeme, value);
 		}
 
