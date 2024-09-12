@@ -226,9 +226,9 @@ public class Parser {
 				default:
 					break;
 			}
-		}
 
-		advance();
+			advance();
+		}
 	}
 
 	private boolean match(TokenType... types) {
