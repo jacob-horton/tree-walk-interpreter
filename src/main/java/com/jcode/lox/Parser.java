@@ -83,10 +83,20 @@ public class Parser {
 		return assignment();
 	}
 
-	// TODO: want same precendence as ternary
 	private Expr assignment() {
-		Expr expr = ternary();
+		Expr expr = equality();
 
+		// Ternary
+		if (match(TokenType.QUESTION)) {
+			Token op1 = previous();
+			Expr middle = expression();
+			Token op2 = consume(TokenType.COLON, "Expect ':' after expression.");
+			Expr right = expression();
+
+			return new Expr.Ternary(expr, op1, middle, op2, right);
+		}
+
+		// Assignment
 		if (match(TokenType.EQUAL)) {
 			Token equals = previous();
 			Expr value = assignment();
@@ -97,21 +107,6 @@ public class Parser {
 			}
 
 			error(equals, "Invalid assignment target.");
-		}
-
-		return expr;
-	}
-
-	private Expr ternary() {
-		Expr expr = equality();
-
-		while (match(TokenType.QUESTION)) {
-			Token op1 = previous();
-			Expr middle = ternary();
-			Token op2 = consume(TokenType.COLON, "Expect ':' after expression.");
-			Expr right = ternary();
-
-			expr = new Expr.Ternary(expr, op1, middle, op2, right);
 		}
 
 		return expr;
