@@ -29,6 +29,8 @@ public class Scanner {
             entry("this", TokenType.THIS),
             entry("true", TokenType.TRUE),
             entry("var", TokenType.VAR),
+            entry("continue", TokenType.CONTINUE),
+            entry("break", TokenType.BREAK),
             entry("while", TokenType.WHILE));
 
     Scanner(String source) {

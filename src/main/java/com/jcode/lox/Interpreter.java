@@ -11,6 +11,8 @@ import com.jcode.lox.Expr.Ternary;
 import com.jcode.lox.Expr.Unary;
 import com.jcode.lox.Expr.Variable;
 import com.jcode.lox.Stmt.Block;
+import com.jcode.lox.Stmt.Break;
+import com.jcode.lox.Stmt.Continue;
 import com.jcode.lox.Stmt.Expression;
 import com.jcode.lox.Stmt.If;
 import com.jcode.lox.Stmt.Print;
@@ -19,6 +21,9 @@ import com.jcode.lox.Stmt.While;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	private Environment environment = new Environment();
+
+	private boolean continueLoop = false;
+	private boolean breakLoop = false;
 
 	public void interpret(List<Stmt> statements) {
 		try {
@@ -92,7 +97,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 				return (double) left - (double) right;
 			case BANG_EQUAL:
 				return !isEqual(left, right);
-			case EQUAL:
+			case EQUAL_EQUAL:
 				return isEqual(left, right);
 			case PLUS:
 				if (left instanceof Double && right instanceof Double) {
@@ -229,6 +234,9 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			this.environment = environment;
 
 			for (Stmt statement : statements) {
+				if (breakLoop || continueLoop)
+					break;
+
 				execute(statement);
 			}
 		} finally {
@@ -280,6 +288,15 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	public Void visitWhileStmt(While stmt) {
 		while (isTruthy(evaluate(stmt.condition))) {
 			execute(stmt.body);
+
+			if (continueLoop) {
+				continueLoop = false;
+			}
+
+			if (breakLoop) {
+				breakLoop = false;
+				break;
+			}
 		}
 
 		return null;
@@ -290,5 +307,17 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		Object value = evaluate(expr.value);
 		environment.assign(expr.name, value);
 		return value;
+	}
+
+	@Override
+	public Void visitBreakStmt(Break stmt) {
+		breakLoop = true;
+		return null;
+	}
+
+	@Override
+	public Void visitContinueStmt(Continue stmt) {
+		continueLoop = true;
+		return null;
 	}
 }
