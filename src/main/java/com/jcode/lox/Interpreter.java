@@ -22,9 +22,6 @@ import com.jcode.lox.Stmt.While;
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	private Environment environment = new Environment();
 
-	private boolean continueLoop = false;
-	private boolean breakLoop = false;
-
 	public void interpret(List<Stmt> statements) {
 		try {
 			for (Stmt statement : statements) {
@@ -234,9 +231,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			this.environment = environment;
 
 			for (Stmt statement : statements) {
-				if (breakLoop || continueLoop)
-					break;
-
 				execute(statement);
 			}
 		} finally {
@@ -286,17 +280,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitWhileStmt(While stmt) {
-		while (isTruthy(evaluate(stmt.condition))) {
-			execute(stmt.body);
-
-			if (continueLoop) {
-				continueLoop = false;
+		try {
+			while (isTruthy(evaluate(stmt.condition))) {
+				try {
+					execute(stmt.body);
+				} catch (com.jcode.lox.Continue error) {
+				}
 			}
-
-			if (breakLoop) {
-				breakLoop = false;
-				break;
-			}
+		} catch (com.jcode.lox.Break error) {
 		}
 
 		return null;
@@ -311,13 +302,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitBreakStmt(Break stmt) {
-		breakLoop = true;
-		return null;
+		throw new com.jcode.lox.Break();
 	}
 
 	@Override
 	public Void visitContinueStmt(Continue stmt) {
-		continueLoop = true;
-		return null;
+		throw new com.jcode.lox.Continue();
 	}
 }

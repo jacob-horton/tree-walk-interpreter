@@ -75,11 +75,13 @@ public class Parser {
 	}
 
 	private Stmt breakStatement() {
+		// TODO: ensure inside loop
 		consume(TokenType.SEMICOLON, "Expect ';' after break");
 		return new Stmt.Break();
 	}
 
 	private Stmt continueStatement() {
+		// TODO: ensure inside loop
 		consume(TokenType.SEMICOLON, "Expect ';' after continue");
 		return new Stmt.Continue();
 	}
