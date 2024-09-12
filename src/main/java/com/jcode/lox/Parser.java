@@ -1,5 +1,6 @@
 package com.jcode.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
@@ -13,16 +14,92 @@ public class Parser {
 		this.tokens = tokens;
 	}
 
-	public Expr parse() {
+	public List<Stmt> parse() {
+		List<Stmt> statements = new ArrayList<>();
+		while (!isAtEnd()) {
+			statements.add(declaration());
+		}
+
+		return statements;
+	}
+
+	private Stmt declaration() {
 		try {
-			return expression();
+			if (match(TokenType.VAR))
+				return varDeclaration();
+
+			return statement();
 		} catch (ParseError error) {
+			synchronise();
 			return null;
 		}
 	}
 
+	private Stmt varDeclaration() {
+		Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+		Expr initialiser = null;
+		if (match(TokenType.EQUAL)) {
+			initialiser = expression();
+		}
+
+		consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+		return new Stmt.Var(name, initialiser);
+	}
+
+	private Stmt statement() {
+		if (match(TokenType.PRINT))
+			return printStatement();
+		if (match(TokenType.LEFT_BRACE))
+			return new Stmt.Block(block());
+
+		return expressionStatement();
+	}
+
+	private List<Stmt> block() {
+		List<Stmt> statements = new ArrayList<>();
+
+		while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+			statements.add(declaration());
+		}
+
+		consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+		return statements;
+	}
+
+	private Stmt printStatement() {
+		Expr expr = expression();
+		consume(TokenType.SEMICOLON, "Expect ';' after value.");
+		return new Stmt.Print(expr);
+	}
+
+	private Stmt expressionStatement() {
+		Expr expr = expression();
+		consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+		return new Stmt.Expression(expr);
+	}
+
 	private Expr expression() {
-		return ternary();
+		return assignment();
+	}
+
+	// TODO: want same precendence as ternary
+	private Expr assignment() {
+		Expr expr = ternary();
+
+		if (match(TokenType.EQUAL)) {
+			Token equals = previous();
+			Expr value = assignment();
+
+			if (expr instanceof Expr.Variable) {
+				Token name = ((Expr.Variable) expr).name;
+				return new Expr.Assign(name, value);
+			}
+
+			error(equals, "Invalid assignment target.");
+		}
+
+		return expr;
 	}
 
 	private Expr ternary() {
@@ -105,6 +182,9 @@ public class Parser {
 			return new Expr.Literal(true);
 		if (match(TokenType.NIL))
 			return new Expr.Literal(null);
+
+		if (match(TokenType.IDENTIFIER))
+			return new Expr.Variable(previous());
 
 		if (match(TokenType.NUMBER, TokenType.STRING)) {
 			return new Expr.Literal(previous().literal);
