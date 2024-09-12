@@ -69,16 +69,16 @@ public class Scanner {
                 addToken(TokenType.DOT);
                 break;
             case '-':
-                addToken(TokenType.MINUS);
+                addToken(match('=') ? TokenType.MINUS_EQUAL : TokenType.MINUS);
                 break;
             case '+':
-                addToken(TokenType.PLUS);
+                addToken(match('=') ? TokenType.PLUS_EQUAL : TokenType.PLUS);
+                break;
+            case '*':
+                addToken(match('=') ? TokenType.STAR_EQUAL : TokenType.STAR);
                 break;
             case ';':
                 addToken(TokenType.SEMICOLON);
-                break;
-            case '*':
-                addToken(TokenType.STAR);
                 break;
             case '?':
                 addToken(TokenType.QUESTION);
@@ -153,6 +153,8 @@ public class Scanner {
             // Consume the "*/"
             advance();
             advance();
+        } else if (match('=')) {
+            addToken(TokenType.SLASH_EQUAL);
         } else {
             addToken(TokenType.SLASH);
         }

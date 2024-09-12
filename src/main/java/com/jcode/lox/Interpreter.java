@@ -90,6 +90,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 				throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
 			case MINUS:
+			case MINUS_EQUAL:
 				checkNumberOperands(expr.operator, left, right);
 				return (double) left - (double) right;
 			case BANG_EQUAL:
@@ -97,6 +98,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			case EQUAL_EQUAL:
 				return isEqual(left, right);
 			case PLUS:
+			case PLUS_EQUAL:
 				if (left instanceof Double && right instanceof Double) {
 					return (double) left + (double) right;
 				}
@@ -107,6 +109,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 				throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
 			case SLASH:
+			case SLASH_EQUAL:
 				checkNumberOperands(expr.operator, left, right);
 
 				if ((double) right == 0) {
@@ -114,6 +117,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 				}
 				return (double) left / (double) right;
 			case STAR:
+			case STAR_EQUAL:
 				checkNumberOperands(expr.operator, left, right);
 				return (double) left * (double) right;
 			default:

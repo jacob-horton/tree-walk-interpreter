@@ -199,7 +199,25 @@ public class Parser {
 			return new Expr.Ternary(expr, op1, middle, op2, right);
 		}
 
-		// Assignment
+		// Desugar assignment
+		if (match(TokenType.PLUS_EQUAL) ||
+				match(TokenType.MINUS_EQUAL) ||
+				match(TokenType.SLASH_EQUAL) ||
+				match(TokenType.STAR_EQUAL)) {
+			Token op = previous();
+			Expr value = assignment();
+
+			if (expr instanceof Expr.Variable) {
+				Token name = ((Expr.Variable) expr).name;
+				Expr expanded = new Expr.Binary(expr, op, value);
+				return new Expr.Assign(name, expanded);
+			}
+
+			error(op, "Invalid assignment target.");
+			return expr;
+		}
+
+		// Normal assignment
 		if (match(TokenType.EQUAL)) {
 			Token equals = previous();
 			Expr value = assignment();
