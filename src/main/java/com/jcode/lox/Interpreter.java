@@ -6,13 +6,16 @@ import com.jcode.lox.Expr.Assign;
 import com.jcode.lox.Expr.Binary;
 import com.jcode.lox.Expr.Grouping;
 import com.jcode.lox.Expr.Literal;
+import com.jcode.lox.Expr.Logical;
 import com.jcode.lox.Expr.Ternary;
 import com.jcode.lox.Expr.Unary;
 import com.jcode.lox.Expr.Variable;
 import com.jcode.lox.Stmt.Block;
 import com.jcode.lox.Stmt.Expression;
+import com.jcode.lox.Stmt.If;
 import com.jcode.lox.Stmt.Print;
 import com.jcode.lox.Stmt.Var;
+import com.jcode.lox.Stmt.While;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	private Environment environment = new Environment();
@@ -130,6 +133,20 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Object visitLogicalExpr(Logical expr) {
+		Object left = evaluate(expr.left);
+		if (expr.operator.type == TokenType.OR) {
+			if (isTruthy(left))
+				return left;
+		} else {
+			if (!isTruthy(left))
+				return left;
+		}
+
+		return evaluate(expr.right);
+	}
+
+	@Override
 	public Object visitUnaryExpr(Unary expr) {
 		Object right = evaluate(expr.right);
 
@@ -232,6 +249,17 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Void visitIfStmt(If stmt) {
+		if (isTruthy(evaluate(stmt.condition))) {
+			execute(stmt.thenBranch);
+		} else if (stmt.elseBranch != null) {
+			execute(stmt.elseBranch);
+		}
+
+		return null;
+	}
+
+	@Override
 	public Void visitPrintStmt(Print stmt) {
 		Object value = evaluate(stmt.expression);
 		System.out.println(stringify(value));
@@ -245,6 +273,15 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			value = evaluate(stmt.initialiser);
 
 		environment.define(stmt.name.lexeme, value);
+		return null;
+	}
+
+	@Override
+	public Void visitWhileStmt(While stmt) {
+		while (isTruthy(evaluate(stmt.condition))) {
+			execute(stmt.body);
+		}
+
 		return null;
 	}
 
