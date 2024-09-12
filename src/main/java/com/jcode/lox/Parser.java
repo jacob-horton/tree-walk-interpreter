@@ -7,11 +7,18 @@ public class Parser {
 	private static class ParseError extends RuntimeException {
 	}
 
+	private boolean printLoneExpressions = false;
 	private final List<Token> tokens;
 	private int current = 0;
 
 	Parser(List<Token> tokens) {
 		this.tokens = tokens;
+	}
+
+	Parser(List<Token> tokens, boolean printLoneExpressions) {
+
+		this.tokens = tokens;
+		this.printLoneExpressions = printLoneExpressions;
 	}
 
 	public List<Stmt> parse() {
@@ -75,6 +82,14 @@ public class Parser {
 
 	private Stmt expressionStatement() {
 		Expr expr = expression();
+
+		// Desugar as print if lone expressions should be printed
+		if (printLoneExpressions) {
+			if (!check(TokenType.SEMICOLON)) {
+				return new Stmt.Print(expr);
+			}
+		}
+
 		consume(TokenType.SEMICOLON, "Expect ';' after expression.");
 		return new Stmt.Expression(expr);
 	}

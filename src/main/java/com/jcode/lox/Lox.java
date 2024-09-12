@@ -55,7 +55,7 @@ public class Lox {
     private static void run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
-        Parser parser = new Parser(tokens);
+        Parser parser = new Parser(tokens, true);
         List<Stmt> statements = parser.parse();
 
         // Stop if syntax error
