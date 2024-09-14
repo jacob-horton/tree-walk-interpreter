@@ -29,7 +29,6 @@ public class GenerateAst {
 				"Unary    : Token operator, Expr right"));
 
 		defineAst(outputDir, "Stmt", Arrays.asList(
-				"Print      : Expr expression",
 				"Break      : Token keyword",
 				"Continue   : Token keyword",
 				"Block      : List<Stmt> statements",

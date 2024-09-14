@@ -25,7 +25,6 @@ import com.jcode.lox.Stmt.Continue;
 import com.jcode.lox.Stmt.Expression;
 import com.jcode.lox.Stmt.Function;
 import com.jcode.lox.Stmt.If;
-import com.jcode.lox.Stmt.Print;
 import com.jcode.lox.Stmt.Return;
 import com.jcode.lox.Stmt.Var;
 import com.jcode.lox.Stmt.While;
@@ -45,6 +44,41 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			@Override
 			public Object call(Interpreter interpreter, List<Object> args) {
 				return (double) System.currentTimeMillis() / 1000.0;
+			}
+
+			@Override
+			public String toString() {
+				return "<native fn>";
+			}
+		});
+
+		globals.define("str", new LoxCallable() {
+			@Override
+			public int arity() {
+				return 1;
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> args) {
+				return stringify(args.get(0));
+			}
+
+			@Override
+			public String toString() {
+				return "<native fn>";
+			}
+		});
+
+		globals.define("print", new LoxCallable() {
+			@Override
+			public int arity() {
+				return 1;
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> args) {
+				System.out.println(stringify(args.get(0)));
+				return null;
 			}
 
 			@Override
@@ -307,13 +341,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			execute(stmt.elseBranch);
 		}
 
-		return null;
-	}
-
-	@Override
-	public Void visitPrintStmt(Print stmt) {
-		Object value = evaluate(stmt.expression);
-		System.out.println(stringify(value));
 		return null;
 	}
 

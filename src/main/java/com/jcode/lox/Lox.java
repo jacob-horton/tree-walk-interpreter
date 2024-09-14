@@ -12,6 +12,7 @@ public class Lox {
     private static final Interpreter interpreter = new Interpreter();
 
     private static boolean hadError = false;
+    private static boolean hadLoneExprError = false;
     private static boolean hadRuntimeError = false;
 
     public static void main(String[] args) throws IOException {
@@ -55,7 +56,7 @@ public class Lox {
     private static void run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
-        Parser parser = new Parser(tokens, true);
+        Parser parser = new Parser(tokens);
         List<Stmt> statements = parser.parse();
 
         // Stop if syntax error

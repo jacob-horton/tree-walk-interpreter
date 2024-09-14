@@ -8,18 +8,11 @@ public class Parser {
 	private static class ParseError extends RuntimeException {
 	}
 
-	private boolean printLoneExpressions = false;
 	private final List<Token> tokens;
 	private int current = 0;
 
 	Parser(List<Token> tokens) {
 		this.tokens = tokens;
-	}
-
-	Parser(List<Token> tokens, boolean printLoneExpressions) {
-
-		this.tokens = tokens;
-		this.printLoneExpressions = printLoneExpressions;
 	}
 
 	public List<Stmt> parse() {
@@ -83,8 +76,6 @@ public class Parser {
 	private Stmt statement() {
 		if (match(TokenType.IF))
 			return ifStatement();
-		if (match(TokenType.PRINT))
-			return printStatement();
 		if (match(TokenType.FOR))
 			return forStatement();
 		if (match(TokenType.WHILE))
@@ -200,21 +191,8 @@ public class Parser {
 		return statements;
 	}
 
-	private Stmt printStatement() {
-		Expr expr = expression();
-		consume(TokenType.SEMICOLON, "Expect ';' after value.");
-		return new Stmt.Print(expr);
-	}
-
 	private Stmt expressionStatement() {
 		Expr expr = expression();
-
-		// Desugar as print if lone expressions should be printed
-		if (printLoneExpressions) {
-			if (!check(TokenType.SEMICOLON)) {
-				return new Stmt.Print(expr);
-			}
-		}
 
 		consume(TokenType.SEMICOLON, "Expect ';' after expression.");
 		return new Stmt.Expression(expr);
@@ -453,8 +431,7 @@ public class Parser {
 
 	private ParseError error(Token token, String message) {
 		Lox.error(token, message);
-
-		throw new ParseError();
+		return new ParseError();
 	}
 
 	private void synchronise() {
@@ -468,7 +445,6 @@ public class Parser {
 				case FOR:
 				case FUN:
 				case IF:
-				case PRINT:
 				case RETURN:
 				case VAR:
 				case WHILE:

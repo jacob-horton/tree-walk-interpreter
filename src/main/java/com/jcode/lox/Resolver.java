@@ -25,7 +25,6 @@ import com.jcode.lox.Stmt.Continue;
 import com.jcode.lox.Stmt.Expression;
 import com.jcode.lox.Stmt.Function;
 import com.jcode.lox.Stmt.If;
-import com.jcode.lox.Stmt.Print;
 import com.jcode.lox.Stmt.Return;
 import com.jcode.lox.Stmt.Var;
 import com.jcode.lox.Stmt.While;
@@ -48,12 +47,6 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
 	private enum FunctionType {
 		NONE, FUNCTION, METHOD, INITIALISER,
-	}
-
-	@Override
-	public Void visitPrintStmt(Print stmt) {
-		resolve(stmt.expression);
-		return null;
 	}
 
 	@Override

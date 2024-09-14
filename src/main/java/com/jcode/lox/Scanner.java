@@ -23,7 +23,6 @@ public class Scanner {
             entry("if", TokenType.IF),
             entry("nil", TokenType.NIL),
             entry("or", TokenType.OR),
-            entry("print", TokenType.PRINT),
             entry("return", TokenType.RETURN),
             entry("super", TokenType.SUPER),
             entry("this", TokenType.THIS),
