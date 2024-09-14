@@ -8,14 +8,18 @@ import java.util.Stack;
 import com.jcode.lox.Expr.Assign;
 import com.jcode.lox.Expr.Binary;
 import com.jcode.lox.Expr.Call;
+import com.jcode.lox.Expr.Get;
 import com.jcode.lox.Expr.Grouping;
 import com.jcode.lox.Expr.Literal;
 import com.jcode.lox.Expr.Logical;
+import com.jcode.lox.Expr.Set;
 import com.jcode.lox.Expr.Ternary;
+import com.jcode.lox.Expr.This;
 import com.jcode.lox.Expr.Unary;
 import com.jcode.lox.Expr.Variable;
 import com.jcode.lox.Stmt.Block;
 import com.jcode.lox.Stmt.Break;
+import com.jcode.lox.Stmt.Class;
 import com.jcode.lox.Stmt.Continue;
 import com.jcode.lox.Stmt.Expression;
 import com.jcode.lox.Stmt.Function;
@@ -28,15 +32,21 @@ import com.jcode.lox.Stmt.While;
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	private final Interpreter interpreter;
 	private final Stack<HashMap<String, Boolean>> scopes = new Stack<>();
+
 	private FunctionType currentFunction = FunctionType.NONE;
+	private ClassType currentClass = ClassType.NONE;
 	private boolean inLoop = false;
 
 	Resolver(Interpreter interpreter) {
 		this.interpreter = interpreter;
 	}
 
+	private enum ClassType {
+		NONE, CLASS,
+	}
+
 	private enum FunctionType {
-		NONE, FUNCTION,
+		NONE, FUNCTION, METHOD, INITIALISER,
 	}
 
 	@Override
@@ -91,8 +101,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 			Lox.error(stmt.keyword, "Can't return from top-level code.");
 		}
 
-		if (stmt.value != null)
+		if (stmt.value != null) {
+			if (currentFunction == FunctionType.INITIALISER) {
+				Lox.error(stmt.keyword, "Can't return a value from an initialiser");
+			}
 			resolve(stmt.value);
+		}
+
 		return null;
 	}
 
@@ -258,5 +273,55 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		endScope();
 
 		currentFunction = enclosingFunction;
+	}
+
+	@Override
+	public Void visitClassStmt(Class stmt) {
+		ClassType enclosingClass = currentClass;
+		currentClass = ClassType.CLASS;
+
+		declare(stmt.name);
+		define(stmt.name);
+
+		beginScope();
+		scopes.peek().put("this", true);
+
+		for (Stmt.Function method : stmt.methods) {
+			FunctionType declaration = FunctionType.METHOD;
+			if (method.name.lexeme.equals("init")) {
+				declaration = FunctionType.INITIALISER;
+			}
+
+			resolveFunction(method, declaration);
+		}
+
+		endScope();
+
+		currentClass = enclosingClass;
+		return null;
+	}
+
+	@Override
+	public Void visitGetExpr(Get expr) {
+		resolve(expr.object);
+		return null;
+	}
+
+	@Override
+	public Void visitSetExpr(Set expr) {
+		resolve(expr.value);
+		resolve(expr.object);
+		return null;
+	}
+
+	@Override
+	public Void visitThisExpr(This expr) {
+		if (currentClass == ClassType.NONE) {
+			Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
+			return null;
+		}
+
+		resolveLocal(expr, expr.keyword);
+		return null;
 	}
 }
