@@ -90,15 +90,15 @@ public class Parser {
 	}
 
 	private Stmt breakStatement() {
-		// TODO: ensure inside loop
+		Stmt stmt = new Stmt.Break(previous());
 		consume(TokenType.SEMICOLON, "Expect ';' after break");
-		return new Stmt.Break();
+		return stmt;
 	}
 
 	private Stmt continueStatement() {
-		// TODO: ensure inside loop
+		Stmt stmt = new Stmt.Continue(previous());
 		consume(TokenType.SEMICOLON, "Expect ';' after continue");
-		return new Stmt.Continue();
+		return stmt;
 	}
 
 	private Stmt forStatement() {
