@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import com.jcode.lox.Expr.Assign;
 import com.jcode.lox.Expr.Binary;
@@ -32,6 +33,7 @@ import com.jcode.lox.Stmt.While;
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	final Environment globals = new Environment();
 	private Environment environment = globals;
+	private Scanner scan;
 	private final Map<Expr, Integer> locals = new HashMap<>();
 
 	public Interpreter() {
@@ -69,7 +71,51 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			}
 		});
 
+		globals.define("number", new LoxCallable() {
+			@Override
+			public int arity() {
+				return 1;
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> args) {
+				Object arg = args.get(0);
+				if (!(arg instanceof String)) {
+					throw new NativeFnError("Can only call 'number()' on strings.");
+				}
+
+				try {
+					return Double.valueOf((String) arg);
+				} catch (NumberFormatException e) {
+					throw new NativeFnError("Invalid number input.");
+				}
+			}
+
+			@Override
+			public String toString() {
+				return "<native fn>";
+			}
+		});
+
 		globals.define("print", new LoxCallable() {
+			@Override
+			public int arity() {
+				return 1;
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> args) {
+				System.out.print(stringify(args.get(0)));
+				return null;
+			}
+
+			@Override
+			public String toString() {
+				return "<native fn>";
+			}
+		});
+
+		globals.define("println", new LoxCallable() {
 			@Override
 			public int arity() {
 				return 1;
@@ -86,16 +132,43 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 				return "<native fn>";
 			}
 		});
+
+		globals.define("input", new LoxCallable() {
+			@Override
+			public int arity() {
+				return 0;
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> args) {
+				if (scan.hasNextLine()) {
+					return scan.nextLine();
+				}
+
+				return null;
+			}
+
+			@Override
+			public String toString() {
+				return "<native fn>";
+			}
+		});
 	}
 
 	public void interpret(List<Stmt> statements) {
+		scan = new Scanner(System.in);
+
 		try {
 			for (Stmt statement : statements) {
 				execute(statement);
 			}
 		} catch (RuntimeError error) {
 			Lox.runtimeError(error);
+		} catch (NativeFnError error) {
+			Lox.nativeFnError(error);
 		}
+
+		scan.close();
 	}
 
 	@Override
